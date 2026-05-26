@@ -1,0 +1,22 @@
+{
+  "cidr": "10.0.2.3/24",
+  "queried_ip": "10.0.2.0",
+  "geolocation": {
+    "status": "fail",
+    "country": "",
+    "countryCode": "",
+    "region": "",
+    "regionName": "",
+    "city": "",
+    "zip": "",
+    "lat": 0,
+    "lon": 0,
+    "timezone": "",
+    "isp": "",
+    "org": "",
+    "as": "",
+    "message": "private range"
+  },
+  "timestamp": "2026-05-26T18:12:30Z",
+  "error": "private range"
+}

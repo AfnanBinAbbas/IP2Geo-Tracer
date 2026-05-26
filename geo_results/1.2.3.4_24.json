@@ -1,0 +1,20 @@
+{
+  "cidr": "1.2.3.4/24",
+  "queried_ip": "1.2.3.0",
+  "geolocation": {
+    "status": "success",
+    "country": "Australia",
+    "countryCode": "AU",
+    "region": "QLD",
+    "regionName": "Queensland",
+    "city": "South Brisbane",
+    "zip": "4101",
+    "lat": -27.4767,
+    "lon": 153.017,
+    "timezone": "Australia/Brisbane",
+    "isp": "Resource Quality Assurance",
+    "org": "Resource Quality Assurance",
+    "as": ""
+  },
+  "timestamp": "2026-05-26T18:12:31Z"
+}
