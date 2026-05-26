@@ -20,6 +20,21 @@ const (
         defaultDelay = 1200 * time.Millisecond
 )
 
+const banner = `
+  ___ ____ ____   ____                _____                        
+ |_ _|  _ \___ \ / ___| ___  ___     |_   _| __ __ _  ___ ___ _ __ 
+  | || |_) |__) | |  _ / _ \/ _ \ _____| || '__/ _ \| __/ _ \ '__|
+  | ||  __// __/ | |_| |  __/ (_) |_____| || | | (_| | (_|  __/ |   
+ |___|_|  |_____|\____|\___|\___/      |_||_|  \__,_|\___\___|_|      
+                                                                                                       
+IP2Geo Tracer - CIDR Geolocation Tool
+`
+
+func showBanner() {
+        fmt.Print(banner)
+        fmt.Println()
+}
+
 type GeoResponse struct {
         Status      string  `json:"status"`
         Country     string  `json:"country"`
@@ -78,20 +93,65 @@ func safeFilename(cidr string) string {
         return strings.ReplaceAll(cidr, "/", "_") + ".json"
 }
 
+func showHelp() {
+        fmt.Printf(`Usage: %s --input <cidr_list.txt> [options]
+
+Required:
+  --input <file>         Text file with one CIDR per line.
+
+Options:
+  --outdir <dir>         Directory to save JSON files (default: geo_results)
+  --delay <duration>     Delay between API requests (default: 1.2s, min: 500ms)
+  --filter-states <list> Comma-separated region names to keep (e.g., 'Maharashtra,Karnataka')
+  --filter-output <file> File to write matching CIDRs (default: allowed_cidrs/cidrs_from_naval_states.txt)
+  --help                 Show this help message.
+
+Examples:
+  %s --input cidrs.txt
+  %s --input cidrs.txt --filter-states "Maharashtra,Karnataka,Gujarat,Kerala"
+  %s --input cidrs.txt --outdir results --delay 2s
+
+`, os.Args[0], os.Args[0], os.Args[0], os.Args[0])
+}
+
 func main() {
+        // Define flags
         inputFile := flag.String("input", "", "File with CIDRs (one per line)")
         outDir := flag.String("outdir", "geo_results", "Directory to save JSON files")
         delay := flag.Duration("delay", defaultDelay, "Delay between API requests")
-        filterStates := flag.String("filter-states", "", "Comma-separated region names to filter (e.g. 'Maharashtra,Karnataka')")
-        filterOutput := flag.String("filter-output", "allowed_cidrs/cidrs_from_naval_states.txt", "File to save matching CIDRs (ignored if --filter-states is empty)")
+        filterStates := flag.String("filter-states", "", "Comma-separated region names to filter")
+        filterOutput := flag.String("filter-output", "allowed_cidrs/cidrs_from_naval_states.txt", "File to save matching CIDRs")
+        help := flag.Bool("help", false, "Show help")
+
+        // Custom usage to show our banner and help
+        flag.Usage = func() {
+                showBanner()
+                showHelp()
+        }
+
         flag.Parse()
 
+        if *help {
+                flag.Usage()
+                os.Exit(0)
+        }
+
         if *inputFile == "" {
-                fmt.Fprintf(os.Stderr, "Usage: %s --input <cidr_list.txt> [--outdir <dir>] [--delay 1.2s] [--filter-states 'State1,State2'] [--filter-output <file>]\n", os.Args[0])
+                fmt.Fprintf(os.Stderr, "Error: --input is required.\n\n")
+                flag.Usage()
                 os.Exit(1)
         }
 
-        // Parse filter states if provided
+        // Validate delay
+        if *delay < 500*time.Millisecond {
+                fmt.Fprintf(os.Stderr, "Warning: Delay too short. Setting to minimum 500ms.\n")
+                *delay = 500 * time.Millisecond
+        }
+
+        // Show banner (non‑help runs)
+        showBanner()
+
+        // Parse filter states
         var filterMap map[string]bool
         if *filterStates != "" {
                 filterMap = make(map[string]bool)
@@ -113,7 +173,7 @@ func main() {
                 }
         }
 
-        // Read CIDRs from file
+        // Read CIDRs
         file, err := os.Open(*inputFile)
         if err != nil {
                 fmt.Fprintf(os.Stderr, "Error opening input file: %v\n", err)
@@ -181,11 +241,10 @@ func main() {
                 }
                 fmt.Printf("   Saved to %s\n", outPath)
 
-                // Filtering: if regionName matches and no error
+                // Filtering
                 if filterMap != nil && output.Geolocation.Status == "success" {
                         region := output.Geolocation.RegionName
                         if filterMap[region] {
-                                // Append CIDR to filter output file
                                 f, err := os.OpenFile(*filterOutput, os.O_APPEND|os.O_WRONLY, 0644)
                                 if err != nil {
                                         fmt.Printf("   Warning: cannot open filter output: %v\n", err)
