@@ -10,6 +10,20 @@ A command-line tool that reads a list of CIDR ranges, queries the [ip-api.com](h
 - Optional region‑based filtering: write CIDRs that match a comma‑separated list of region names to a separate output file.
 - Configurable output directory for JSON files and delay between requests.
 
+## Project Structure
+
+```
+ip2geo-tracer/
+├── main.go                 # main Go source code
+├── README.md               # documentation
+├── LICENSE                 # MIT license
+├── cidrs.txt               # example input file (one CIDR per line)
+├── .gitignore              # optional: ignore geo_results/, allowed_cidrs/, binary
+└── (output directories are created at runtime)
+    ├── geo_results/        # JSON files for each CIDR
+    └── allowed_cidrs/      # filtered CIDR list (if --filter-states used)
+```
+
 ## Installation
 
 ### Prerequisites
@@ -24,7 +38,7 @@ cd ip2geo-tracer
 go build -o ip2geo-tracer main.go
 ```
 
-Replace `main.go` with the actual source file name.
+The source file is `main.go`. Adjust the name if you renamed it.
 
 ## Usage
 
